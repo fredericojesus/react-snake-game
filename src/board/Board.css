@@ -1,0 +1,8 @@
+.board {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  border-color: blue;
+  border-style: solid;
+  background-color: white;
+}

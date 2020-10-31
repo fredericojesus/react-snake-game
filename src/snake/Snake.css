@@ -1,0 +1,5 @@
+.snake {
+  position: relative;
+  background-color: red;
+  transition: transform 0.1s ease-in-out;
+}
