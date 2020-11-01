@@ -10,6 +10,7 @@ interface Props {
 
 const Snake: React.FC<Props> = (props: Props) => {
   const [snakePieces, setSnakePieces] = useState(<div></div>);
+
   useEffect(() => {
     if (props.snakePositions.length > 0) {
       setSnakePieces(
@@ -18,8 +19,8 @@ const Snake: React.FC<Props> = (props: Props) => {
           style={{
             width: props.snakeSize,
             height: props.snakeSize,
-            top: `${props.snakePositions[0][1] * 20}px`,
-            left: `${props.snakePositions[0][0] * 20}px`,
+            top: `${props.snakePositions[0][0] * props.snakeSize}px`,
+            left: `${props.snakePositions[0][1] * props.snakeSize}px`,
           }}
         ></div>,
       );

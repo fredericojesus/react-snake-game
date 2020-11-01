@@ -12,8 +12,8 @@ const Board: React.FC = () => {
   const [snakeLastPosition, setSnakeLastPosition] = useState([10, 10]);
   const [moving, setMoving] = useState<Move>('NotMoving');
   const [forceMoving, forceMovingUpdate] = useReducer((x) => x + 1, 0);
-  const [borderLeftRightWidth, setBorderLeftRightWidth] = useState(0);
   const [borderTopBottomWidth, setBorderTopBottomWidth] = useState(0);
+  const [borderLeftRightWidth, setBorderLeftRightWidth] = useState(0);
   const [boardWidth, setBoardWidth] = useState(0);
   const [boardHeight, setBoardHeight] = useState(0);
 
@@ -22,11 +22,11 @@ const Board: React.FC = () => {
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
-    const horizontalBorder = snakeSize + (windowWidth % snakeSize);
     const verticalBorder = snakeSize + (windowHeight % snakeSize);
+    const horizontalBorder = snakeSize + (windowWidth % snakeSize);
 
-    setBorderLeftRightWidth(horizontalBorder / 2);
     setBorderTopBottomWidth(verticalBorder / 2);
+    setBorderLeftRightWidth(horizontalBorder / 2);
 
     setBoardWidth(windowWidth - horizontalBorder);
     setBoardHeight(windowHeight - verticalBorder);
@@ -34,12 +34,12 @@ const Board: React.FC = () => {
 
   // Create board matrix
   useEffect(() => {
-    const numberOfHorizontalCells = boardWidth / snakeSize;
     const numberOfVerticalCells = boardHeight / snakeSize;
+    const numberOfHorizontalCells = boardWidth / snakeSize;
 
     setBoard([
-      [...Array(numberOfHorizontalCells).keys()].map(() => 'empty'),
       [...Array(numberOfVerticalCells).keys()].map(() => 'empty'),
+      [...Array(numberOfHorizontalCells).keys()].map(() => 'empty'),
     ]);
   }, [boardWidth, boardHeight]);
 
@@ -67,27 +67,39 @@ const Board: React.FC = () => {
   useEffect(() => {
     switch (moving) {
       case 'ArrowUp':
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0], snakeLastPosition[1] - 1],
-        ]);
-        break;
-      case 'ArrowDown':
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0], snakeLastPosition[1] + 1],
-        ]);
-        break;
-      case 'ArrowLeft':
+        if (snakeLastPosition[0] === 0) {
+          // hit ceiling
+        }
         setSnakePositions([
           ...snakePositions,
           [snakeLastPosition[0] - 1, snakeLastPosition[1]],
         ]);
         break;
-      case 'ArrowRight':
+      case 'ArrowDown':
+        if (snakeLastPosition[0] === board[0].length - 1) {
+          // hit floor
+        }
         setSnakePositions([
           ...snakePositions,
           [snakeLastPosition[0] + 1, snakeLastPosition[1]],
+        ]);
+        break;
+      case 'ArrowLeft':
+        if (snakeLastPosition[1] === 0) {
+          // hit left wall
+        }
+        setSnakePositions([
+          ...snakePositions,
+          [snakeLastPosition[0], snakeLastPosition[1] - 1],
+        ]);
+        break;
+      case 'ArrowRight':
+        if (snakeLastPosition[1] === board[1].length - 1) {
+          // hit right wall
+        }
+        setSnakePositions([
+          ...snakePositions,
+          [snakeLastPosition[0], snakeLastPosition[1] + 1],
         ]);
         break;
     }
@@ -97,6 +109,8 @@ const Board: React.FC = () => {
     return () => clearTimeout(timer);
   }, [snakeLastPosition]);
 
+  console.log('test');
+
   return (
     <div
       className="board"
@@ -105,10 +119,10 @@ const Board: React.FC = () => {
         borderBottomWidth: borderTopBottomWidth,
         borderLeftWidth: borderLeftRightWidth,
         borderRightWidth: borderLeftRightWidth,
+        gridTemplateRows: `repeat(${boardHeight / snakeSize}, ${snakeSize}px)`,
         gridTemplateColumns: `repeat(${
           boardWidth / snakeSize
         }, ${snakeSize}px)`,
-        gridTemplateRows: `repeat(${boardHeight / snakeSize}, ${snakeSize}px)`,
       }}
       onKeyDown={onKeyDown}
       tabIndex={0}
