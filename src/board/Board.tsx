@@ -1,115 +1,84 @@
-import React, { KeyboardEvent, useEffect, useReducer, useState } from 'react';
 import './Board.css';
-import { Cell } from '../models/snake.model';
+import React, { Dispatch, KeyboardEvent, useEffect, useState } from 'react';
+import { GamePhase, MoveDirection } from '../models/game.model';
+import { GameAction, State } from '../models/state.model';
 import Snake from '../snake/Snake';
 
-type Move = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'NotMoving';
+interface Props {
+  state: State;
+  dispatch: Dispatch<GameAction>;
+}
 
-const Board: React.FC = () => {
+const Board: React.FC<Props> = (props: Props) => {
   const snakeSize = 20;
-  const [board, setBoard] = useState<Cell[][]>([]);
-  const [snakePositions, setSnakePositions] = useState([[10, 10]]);
-  const [snakeLastPosition, setSnakeLastPosition] = useState([10, 10]);
-  const [moving, setMoving] = useState<Move>('NotMoving');
-  const [forceMoving, forceMovingUpdate] = useReducer((x) => x + 1, 0);
   const [borderTopBottomWidth, setBorderTopBottomWidth] = useState(0);
   const [borderLeftRightWidth, setBorderLeftRightWidth] = useState(0);
   const [boardWidth, setBoardWidth] = useState(0);
   const [boardHeight, setBoardHeight] = useState(0);
+  const [direction, setDirection] = useState<MoveDirection>('NOT_MOVING');
 
   // Set board and border size
   useEffect(() => {
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
-    const verticalBorder = snakeSize + (windowHeight % snakeSize);
-    const horizontalBorder = snakeSize + (windowWidth % snakeSize);
+    const verticalBorder = windowHeight % snakeSize;
+    const horizontalBorder = windowWidth % snakeSize;
 
     setBorderTopBottomWidth(verticalBorder / 2);
     setBorderLeftRightWidth(horizontalBorder / 2);
 
-    setBoardWidth(windowWidth - horizontalBorder);
-    setBoardHeight(windowHeight - verticalBorder);
+    const newBoardHeight = windowHeight - verticalBorder;
+    const newBoardWidth = windowWidth - horizontalBorder;
+    setBoardHeight(newBoardHeight);
+    setBoardWidth(newBoardWidth);
+
+    const numberOfVerticalCells = newBoardHeight / snakeSize;
+    const numberOfHorizontalCells = newBoardWidth / snakeSize;
+
+    props.dispatch({
+      type: GamePhase.INITIAL,
+      board: [
+        [...Array(numberOfVerticalCells).keys()].map(() => 'empty'),
+        [...Array(numberOfHorizontalCells).keys()].map(() => 'empty'),
+      ],
+    });
   }, []);
 
-  // Create board matrix
   useEffect(() => {
-    const numberOfVerticalCells = boardHeight / snakeSize;
-    const numberOfHorizontalCells = boardWidth / snakeSize;
+    if (props.state.gameState === GamePhase.TICK) {
+      switch (props.state.gameState) {
+        case GamePhase.TICK:
+          const timer = setTimeout(() => {
+            props.dispatch({
+              type: GamePhase.TICK,
+              direction: props.state.direction,
+            });
+          }, 100);
+          return () => clearTimeout(timer);
+      }
+    }
+  }, [props.state.snakePositions]);
 
-    setBoard([
-      [...Array(numberOfVerticalCells).keys()].map(() => 'empty'),
-      [...Array(numberOfHorizontalCells).keys()].map(() => 'empty'),
-    ]);
-  }, [boardWidth, boardHeight]);
+  useEffect(() => {
+    if (direction !== 'NOT_MOVING') {
+      setTimeout(() => {
+        props.dispatch({
+          type: GamePhase.TICK,
+          direction: direction,
+        });
+      }, 100);
+    }
+  }, [direction]);
 
   // Listen to user key down events
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    switch (event.key) {
-      case 'ArrowUp':
-      case 'ArrowDown':
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        setMoving(event.key);
-        break;
+    // e.g.: Transform 'ArrowDown' in 'DOWN'
+    const newDirection = event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection;
+    if (direction !== newDirection) {
+      setDirection(event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection);
     }
   };
-
-  // Move
-  useEffect(() => {
-    if (moving !== 'NotMoving') {
-      setSnakeLastPosition(snakePositions[snakePositions.length - 1]);
-      setSnakePositions(snakePositions.slice(0, snakePositions.length - 1));
-    }
-  }, [moving, forceMoving]);
-
-  // Change snake position
-  useEffect(() => {
-    switch (moving) {
-      case 'ArrowUp':
-        if (snakeLastPosition[0] === 0) {
-          // hit ceiling
-        }
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0] - 1, snakeLastPosition[1]],
-        ]);
-        break;
-      case 'ArrowDown':
-        if (snakeLastPosition[0] === board[0].length - 1) {
-          // hit floor
-        }
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0] + 1, snakeLastPosition[1]],
-        ]);
-        break;
-      case 'ArrowLeft':
-        if (snakeLastPosition[1] === 0) {
-          // hit left wall
-        }
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0], snakeLastPosition[1] - 1],
-        ]);
-        break;
-      case 'ArrowRight':
-        if (snakeLastPosition[1] === board[1].length - 1) {
-          // hit right wall
-        }
-        setSnakePositions([
-          ...snakePositions,
-          [snakeLastPosition[0], snakeLastPosition[1] + 1],
-        ]);
-        break;
-    }
-
-    // Snake speed
-    const timer = setTimeout(() => forceMovingUpdate(), 100);
-    return () => clearTimeout(timer);
-  }, [snakeLastPosition]);
-
-  console.log('test');
 
   return (
     <div
@@ -120,18 +89,12 @@ const Board: React.FC = () => {
         borderLeftWidth: borderLeftRightWidth,
         borderRightWidth: borderLeftRightWidth,
         gridTemplateRows: `repeat(${boardHeight / snakeSize}, ${snakeSize}px)`,
-        gridTemplateColumns: `repeat(${
-          boardWidth / snakeSize
-        }, ${snakeSize}px)`,
+        gridTemplateColumns: `repeat(${boardWidth / snakeSize}, ${snakeSize}px)`,
       }}
       onKeyDown={onKeyDown}
       tabIndex={0}
     >
-      <Snake
-        board={board}
-        snakeSize={snakeSize}
-        snakePositions={snakePositions}
-      />
+      <Snake state={props.state} />
     </div>
   );
 };

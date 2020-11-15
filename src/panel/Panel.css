@@ -1,0 +1,31 @@
+.interface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.interface > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 500px;
+  height: 700px;
+  color: white;
+  background: black;
+}
+
+.interface > div button {
+  margin-top: 16px;
+  padding: 8px 16px;
+  font-size: 20px;
+  color: white;
+  background: green;
+  border: none;
+  border-radius: 3px;
+}

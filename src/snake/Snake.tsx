@@ -1,33 +1,31 @@
-import React, { useEffect, useState } from 'react';
 import './Snake.css';
-import { Cell } from '../models/snake.model';
+import React, { useEffect, useState } from 'react';
+import { State } from '../models/state.model';
 
 interface Props {
-  board: Cell[][];
-  snakeSize: number;
-  snakePositions: number[][];
+  state: State;
 }
 
 const Snake: React.FC<Props> = (props: Props) => {
-  const [snakePieces, setSnakePieces] = useState(<div></div>);
+  const [snakePieces, setSnakePieces] = useState<JSX.Element[]>([]);
 
   useEffect(() => {
-    if (props.snakePositions.length > 0) {
-      setSnakePieces(
-        <div
-          className="snake"
-          style={{
-            width: props.snakeSize,
-            height: props.snakeSize,
-            top: `${props.snakePositions[0][0] * props.snakeSize}px`,
-            left: `${props.snakePositions[0][1] * props.snakeSize}px`,
-          }}
-        ></div>,
-      );
-    }
-  }, [props.snakePositions]);
+    const pieces = props.state.snakePositions.map((snakePosition, index) => (
+      <div
+        key={index}
+        className="snake"
+        style={{
+          width: props.state.snakeSize,
+          height: props.state.snakeSize,
+          top: `${snakePosition.y * props.state.snakeSize}px`,
+          left: `${snakePosition.x * props.state.snakeSize}px`,
+        }}
+      ></div>
+    ));
+    setSnakePieces(pieces);
+  }, [props.state.snakePositions]);
 
-  return snakePieces;
+  return <>{snakePieces}</>;
 };
 
 export default Snake;
