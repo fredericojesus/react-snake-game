@@ -1,7 +1,7 @@
 import './Panel.css';
 import React, { Dispatch, useEffect, useState } from 'react';
-import { GamePhase } from '../models/game.model';
-import { GameAction, State } from '../models/state.model';
+import { GamePhase } from '../../models/game.model';
+import { GameAction, State } from '../../models/state.model';
 
 interface Props {
   state: State;

@@ -1,7 +1,8 @@
 import './Board.css';
 import React, { Dispatch, KeyboardEvent, useEffect, useState } from 'react';
-import { GamePhase, MoveDirection } from '../models/game.model';
-import { GameAction, State } from '../models/state.model';
+import { GamePhase, MoveDirection } from '../../models/game.model';
+import { GameAction, State } from '../../models/state.model';
+import Food from '../food/Food';
 import Snake from '../snake/Snake';
 
 interface Props {
@@ -98,6 +99,7 @@ const Board: React.FC<Props> = (props: Props) => {
       tabIndex={0}
     >
       <Snake state={props.state} />
+      <Food state={props.state} />
     </div>
   );
 };

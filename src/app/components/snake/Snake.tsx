@@ -1,6 +1,6 @@
 import './Snake.css';
 import React, { useEffect, useState } from 'react';
-import { State } from '../models/state.model';
+import { State } from '../../models/state.model';
 
 interface Props {
   state: State;
