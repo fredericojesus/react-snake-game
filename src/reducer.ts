@@ -1,4 +1,4 @@
-import { GamePhase, MoveDirection, SnakePosition } from './models/game.model';
+import { Cell, GamePhase, MoveDirection, SnakePosition } from './models/game.model';
 import { GameAction, State } from './models/state.model';
 
 export const recuder = (state: State, action: GameAction): State => {
@@ -13,6 +13,7 @@ export const recuder = (state: State, action: GameAction): State => {
         ...state,
         gameState: GamePhase.START,
         isPlaying: true,
+        board: state.board.map((xCell) => xCell.map(() => 'empty')),
         snakePositions: [
           { y: 10, x: 10, direction: 'RIGHT' },
           { y: 10, x: 11, direction: 'RIGHT' },
@@ -39,12 +40,19 @@ export const recuder = (state: State, action: GameAction): State => {
           };
         }
 
+        const boardAndSnakePositions = calculateBoardAndSnakePositions(
+          state.board,
+          state.snakePositions,
+          action.direction,
+        );
+
         // Change snake position after x ms
         return {
           ...state,
           gameState: GamePhase.TICK,
           isPlaying: true,
-          snakePositions: calculateSnakePositions(state.snakePositions, action.direction),
+          board: boardAndSnakePositions.board,
+          snakePositions: boardAndSnakePositions.snakePositions,
           direction: action.direction,
         };
       }
@@ -55,14 +63,17 @@ export const recuder = (state: State, action: GameAction): State => {
 };
 
 // Move
-const calculateSnakePositions = (
+const calculateBoardAndSnakePositions = (
+  board: Cell[][],
   snakePositions: SnakePosition[],
   newDirection: MoveDirection,
-): SnakePosition[] => {
+): { board: Cell[][]; snakePositions: SnakePosition[] } => {
   let snakeLastPosition = snakePositions[snakePositions.length - 1];
 
   for (let i = snakePositions.length - 1; i >= 0; i--) {
     const lastPosition = { ...snakePositions[i] };
+    board[snakePositions[i].x][snakePositions[i].y] = 'empty';
+
     newDirection =
       i === snakePositions.length - 1
         ? newDirection
@@ -100,37 +111,53 @@ const calculateSnakePositions = (
     }
 
     snakeLastPosition = lastPosition;
+    board[snakePositions[i].x][snakePositions[i].y] = 'snake';
   }
 
-  return [...snakePositions];
+  return {
+    board: [...board],
+    snakePositions: [...snakePositions],
+  };
 };
 
 // Check Walls
 const isGameOver = ({ board, snakePositions, direction }: State): boolean => {
-  const snakeLastPosition = snakePositions[snakePositions.length - 1];
+  const snakeHeadPosition = snakePositions[snakePositions.length - 1];
 
   switch (direction) {
     case 'UP':
-      if (snakeLastPosition.y === 0) {
-        // hit ceiling
+      // hit ceiling or hit tale
+      if (
+        snakeHeadPosition.y === 0 ||
+        board[snakeHeadPosition.x][snakeHeadPosition.y - 1] === 'snake'
+      ) {
         return true;
       }
       break;
     case 'DOWN':
-      if (snakeLastPosition.y === board[0].length - 1) {
-        // hit floor
+      // hit floor or hit tale
+      if (
+        snakeHeadPosition.y === board[0].length - 1 ||
+        board[snakeHeadPosition.x][snakeHeadPosition.y + 1] === 'snake'
+      ) {
         return true;
       }
       break;
     case 'LEFT':
-      if (snakeLastPosition.x === 0) {
-        // hit left wall
+      // hit left wall or hit tale
+      if (
+        snakeHeadPosition.x === 0 ||
+        board[snakeHeadPosition.x - 1][snakeHeadPosition.y] === 'snake'
+      ) {
         return true;
       }
       break;
     case 'RIGHT':
-      if (snakeLastPosition.x === board[1].length - 1) {
-        // hit right wall
+      // hit right wall or hit tale
+      if (
+        snakeHeadPosition.x === board[1].length - 1 ||
+        board[snakeHeadPosition.x + 1][snakeHeadPosition.y] === 'snake'
+      ) {
         return true;
       }
       break;

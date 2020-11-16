@@ -38,27 +38,28 @@ const Board: React.FC<Props> = (props: Props) => {
 
     props.dispatch({
       type: GamePhase.INITIAL,
-      board: [
-        [...Array(numberOfVerticalCells).keys()].map(() => 'empty'),
+      board: Array.from(
         [...Array(numberOfHorizontalCells).keys()].map(() => 'empty'),
-      ],
+        () => [...Array(numberOfVerticalCells).keys()].map(() => 'empty'),
+      ),
     });
   }, []);
 
   useEffect(() => {
-    if (props.state.gameState === GamePhase.TICK) {
-      switch (props.state.gameState) {
-        case GamePhase.TICK:
-          const timer = setTimeout(() => {
-            props.dispatch({
-              type: GamePhase.TICK,
-              direction: props.state.direction,
-            });
-          }, 100);
-          return () => clearTimeout(timer);
-      }
+    switch (props.state.gameState) {
+      case GamePhase.TICK:
+        const timer = setTimeout(() => {
+          props.dispatch({
+            type: GamePhase.TICK,
+            direction: props.state.direction,
+          });
+        }, 100);
+        return () => clearTimeout(timer);
+      case GamePhase.GAME_OVER:
+        setDirection('NOT_MOVING');
+        break;
     }
-  }, [props.state.snakePositions]);
+  }, [props.state.snakePositions, props.state.gameState]);
 
   useEffect(() => {
     if (direction !== 'NOT_MOVING') {
@@ -75,7 +76,9 @@ const Board: React.FC<Props> = (props: Props) => {
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     // e.g.: Transform 'ArrowDown' in 'DOWN'
     const newDirection = event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection;
-    if (direction !== newDirection) {
+
+    // If newDirection is different and not the opposite direction of current direction
+    if (direction !== newDirection && !isOppositeDirection(direction, newDirection)) {
       setDirection(event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection);
     }
   };
@@ -97,6 +100,36 @@ const Board: React.FC<Props> = (props: Props) => {
       <Snake state={props.state} />
     </div>
   );
+};
+
+const isOppositeDirection = (
+  currentDirection: MoveDirection,
+  newDirection: MoveDirection,
+): boolean => {
+  switch (currentDirection) {
+    case 'UP':
+      if (newDirection === 'DOWN') {
+        return true;
+      }
+      break;
+    case 'DOWN':
+      if (newDirection === 'UP') {
+        return true;
+      }
+      break;
+    case 'LEFT':
+      if (newDirection === 'RIGHT') {
+        return true;
+      }
+      break;
+    case 'RIGHT':
+      if (newDirection === 'LEFT') {
+        return true;
+      }
+      break;
+  }
+
+  return false;
 };
 
 export default Board;
