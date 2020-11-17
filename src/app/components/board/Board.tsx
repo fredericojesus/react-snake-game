@@ -16,7 +16,8 @@ const Board: React.FC<Props> = (props: Props) => {
   const [borderLeftRightWidth, setBorderLeftRightWidth] = useState(0);
   const [boardWidth, setBoardWidth] = useState(0);
   const [boardHeight, setBoardHeight] = useState(0);
-  const [direction, setDirection] = useState<MoveDirection>('NOT_MOVING');
+  // Save all user inputs (gives a better UX)
+  const [directions, setDirections] = useState<MoveDirection[]>([]);
 
   // Set board and border size
   useEffect(() => {
@@ -47,40 +48,42 @@ const Board: React.FC<Props> = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    switch (props.state.gameState) {
-      case GamePhase.TICK:
-        const timer = setTimeout(() => {
-          props.dispatch({
-            type: GamePhase.TICK,
-            direction: props.state.direction,
-          });
-        }, 100);
-        return () => clearTimeout(timer);
-      case GamePhase.GAME_OVER:
-        setDirection('NOT_MOVING');
-        break;
-    }
-  }, [props.state.snakePositions, props.state.gameState]);
-
-  useEffect(() => {
-    if (direction !== 'NOT_MOVING') {
-      setTimeout(() => {
+    if (props.state.gameState === GamePhase.TICK) {
+      const timer = setTimeout(() => {
         props.dispatch({
           type: GamePhase.TICK,
-          direction: direction,
+          direction: directions[0],
         });
       }, 100);
+
+      // Don't remove the last user input (direction) or the snake would stop
+      if (directions.length > 1) {
+        setDirections(directions.slice(1));
+      }
+      return () => clearTimeout(timer);
     }
-  }, [direction]);
+  }, [props.state.snakePositions]);
 
   // Listen to user key down events
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const direction = directions[directions.length - 1];
     // e.g.: Transform 'ArrowDown' in 'DOWN'
     const newDirection = event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection;
 
     // If newDirection is different and not the opposite direction of current direction
-    if (direction !== newDirection && !isOppositeDirection(direction, newDirection)) {
-      setDirection(event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection);
+    if (
+      props.state.gameState === GamePhase.START ||
+      (direction !== newDirection && !isOppositeDirection(direction, newDirection))
+    ) {
+      setDirections([...directions, newDirection]);
+    }
+
+    // Start game
+    if (props.state.gameState === GamePhase.START) {
+      props.dispatch({
+        type: GamePhase.TICK,
+        direction: newDirection,
+      });
     }
   };
 

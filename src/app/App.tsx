@@ -14,7 +14,7 @@ const App: React.FC = () => {
     board: [],
     snakePositions: [{ y: 10, x: 10, direction: 'UP' }],
     foodPosition: [],
-    direction: 'NOT_MOVING',
+    direction: 'UP',
   };
 
   const [state, dispatch] = useReducer(recuder, initialState);

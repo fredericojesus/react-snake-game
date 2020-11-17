@@ -7,7 +7,7 @@ export enum GamePhase {
 
 export type Cell = 'empty' | 'snake' | 'food';
 
-export type MoveDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'NOT_MOVING';
+export type MoveDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 export interface SnakePosition {
   x: number;

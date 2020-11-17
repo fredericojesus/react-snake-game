@@ -28,7 +28,7 @@ export const recuder = (state: State, action: GameAction): State => {
             ...state,
             gameState: GamePhase.GAME_OVER,
             isPlaying: false,
-            direction: 'NOT_MOVING',
+            direction: 'UP',
           };
         }
 
@@ -62,52 +62,37 @@ const calculateBoardSnakeFoodPositions = (
   foodPosition: number[],
   newDirection: MoveDirection,
 ): { board: Cell[][]; snakePositions: SnakePosition[]; foodPosition: number[] } => {
-  const snakeHeadPosition = snakePositions[snakePositions.length - 1];
+  let snakeHeadPosition = { ...snakePositions[snakePositions.length - 1] };
+  let newSnakePositions = [...snakePositions];
 
   // Check if snake is going to eat, if yes, snake grows
   let isSnakeGoingToEat = false;
-  switch (snakeHeadPosition.direction) {
+  switch (newDirection) {
     case 'UP':
       if (board[snakeHeadPosition.x][snakeHeadPosition.y - 1] === 'food') {
         isSnakeGoingToEat = true;
-        snakePositions.unshift({
-          x: snakePositions[0].x,
-          y: snakePositions[0].y + 1,
-          direction: 'UP',
-        });
+        newSnakePositions = [newSnakePositions[0], ...newSnakePositions];
       }
       break;
 
     case 'DOWN':
       if (board[snakeHeadPosition.x][snakeHeadPosition.y + 1] === 'food') {
         isSnakeGoingToEat = true;
-        snakePositions.unshift({
-          x: snakePositions[0].x,
-          y: snakePositions[0].y - 1,
-          direction: 'DOWN',
-        });
+        newSnakePositions = [newSnakePositions[0], ...newSnakePositions];
       }
       break;
 
     case 'LEFT':
       if (board[snakeHeadPosition.x - 1][snakeHeadPosition.y] === 'food') {
         isSnakeGoingToEat = true;
-        snakePositions.unshift({
-          x: snakePositions[0].x + 1,
-          y: snakePositions[0].y,
-          direction: 'LEFT',
-        });
+        newSnakePositions = [newSnakePositions[0], ...newSnakePositions];
       }
       break;
 
     case 'RIGHT':
       if (board[snakeHeadPosition.x + 1][snakeHeadPosition.y] === 'food') {
         isSnakeGoingToEat = true;
-        snakePositions.unshift({
-          x: snakePositions[0].x - 1,
-          y: snakePositions[0].y,
-          direction: 'RIGHT',
-        });
+        newSnakePositions = [newSnakePositions[0], ...newSnakePositions];
       }
       break;
   }
@@ -118,58 +103,57 @@ const calculateBoardSnakeFoodPositions = (
     board[foodPosition[0]][foodPosition[1]] = 'food';
   }
 
-  // Move snake
-  let snakeLastPosition = snakeHeadPosition;
-  for (let i = snakePositions.length - 1; i >= 0; i--) {
-    const lastPosition = { ...snakePositions[i] };
-    board[snakePositions[i].x][snakePositions[i].y] = 'empty';
+  // Move snake body
+  let snakeLastPosition = { ...snakeHeadPosition };
+  for (let i = newSnakePositions.length - 2; i >= 0; i--) {
+    const currentPosition = { ...newSnakePositions[i] };
+    board[currentPosition.x][currentPosition.y] = 'empty';
+    newSnakePositions[i] = snakeLastPosition;
+    board[newSnakePositions[i].x][newSnakePositions[i].y] = 'snake';
+    snakeLastPosition = currentPosition;
+  }
 
-    newDirection =
-      i === snakePositions.length - 1
-        ? newDirection
-        : (snakeLastPosition.direction as MoveDirection);
+  // Move snake head
+  switch (newDirection) {
+    case 'UP':
+      snakeHeadPosition = {
+        x: snakeHeadPosition.x,
+        y: snakeHeadPosition.y - 1,
+        direction: newDirection,
+      };
+      break;
 
-    switch (newDirection) {
-      case 'UP':
-        snakePositions[i] = {
-          x: snakeLastPosition.x,
-          y: snakePositions[i].y - 1,
-          direction: newDirection,
-        };
-        break;
+    case 'DOWN':
+      snakeHeadPosition = {
+        x: snakeHeadPosition.x,
+        y: snakeHeadPosition.y + 1,
+        direction: newDirection,
+      };
+      break;
 
-      case 'DOWN':
-        snakePositions[i] = {
-          x: snakeLastPosition.x,
-          y: snakePositions[i].y + 1,
-          direction: newDirection,
-        };
-        break;
+    case 'LEFT':
+      snakeHeadPosition = {
+        x: snakeHeadPosition.x - 1,
+        y: snakeHeadPosition.y,
+        direction: newDirection,
+      };
+      break;
 
-      case 'LEFT':
-        snakePositions[i] = {
-          x: snakePositions[i].x - 1,
-          y: snakeLastPosition.y,
-          direction: newDirection,
-        };
-        break;
-
-      case 'RIGHT':
-        snakePositions[i] = {
-          x: snakePositions[i].x + 1,
-          y: snakeLastPosition.y,
-          direction: newDirection,
-        };
-        break;
-    }
-
-    snakeLastPosition = lastPosition;
-    board[snakePositions[i].x][snakePositions[i].y] = 'snake';
+    case 'RIGHT':
+      snakeHeadPosition = {
+        x: snakeHeadPosition.x + 1,
+        y: snakeHeadPosition.y,
+        direction: newDirection,
+      };
+      break;
   }
 
   return {
     board: [...board],
-    snakePositions: [...snakePositions],
+    snakePositions: [
+      ...newSnakePositions.slice(0, newSnakePositions.length - 1),
+      snakeHeadPosition,
+    ],
     foodPosition,
   };
 };
@@ -209,7 +193,7 @@ const isGameOver = ({ board, snakePositions, direction }: State): boolean => {
     case 'RIGHT':
       // hit right wall or hit tale
       if (
-        snakeHeadPosition.x === board[1].length - 1 ||
+        snakeHeadPosition.x === board.length - 1 ||
         board[snakeHeadPosition.x + 1][snakeHeadPosition.y] === 'snake'
       ) {
         return true;
@@ -230,16 +214,16 @@ const generateNewFoodPosition = (board: Cell[][]): number[] | void => {
     return [xPosition, yPosition];
   }
 
-  // Generate other random y position
-  yPosition = Math.floor(Math.random() * board.length);
+  // Cell is not empty, generate other random x position
+  xPosition = Math.floor(Math.random() * board[0].length);
 
   // Check if cell is empty
   if (board[xPosition][yPosition] === 'empty') {
     return [xPosition, yPosition];
   }
 
-  // Generate other random x position
-  xPosition = Math.floor(Math.random() * board[0].length);
+  // Cell is not empty, generate other random y position
+  yPosition = Math.floor(Math.random() * board.length);
 
   // Check if cell is empty
   if (board[xPosition][yPosition] === 'empty') {
