@@ -75,7 +75,11 @@ const Board: React.FC<Props> = (props: Props) => {
       props.state.gameState === GamePhase.START ||
       (direction !== newDirection && !isOppositeDirection(direction, newDirection))
     ) {
-      setDirections([...directions, newDirection]);
+      if (directions.length === 1) {
+        setDirections([newDirection, newDirection]);
+      } else {
+        setDirections([...directions, newDirection]);
+      }
     }
 
     // Start game

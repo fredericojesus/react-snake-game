@@ -206,8 +206,8 @@ const isGameOver = ({ board, snakePositions, direction }: State): boolean => {
 
 const generateNewFoodPosition = (board: Cell[][]): number[] | void => {
   // Generate random positions
-  let xPosition = Math.floor(Math.random() * board[0].length);
-  let yPosition = Math.floor(Math.random() * board.length);
+  let xPosition = Math.floor(Math.random() * board.length);
+  let yPosition = Math.floor(Math.random() * board[0].length);
 
   // Check if cell is empty
   if (board[xPosition][yPosition] === 'empty') {
