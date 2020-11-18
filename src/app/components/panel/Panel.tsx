@@ -1,5 +1,5 @@
 import './Panel.css';
-import React, { Dispatch, useEffect, useState } from 'react';
+import React, { Dispatch, KeyboardEvent, useEffect, useState } from 'react';
 import { GamePhase } from '../../models/game.model';
 import { GameAction, State } from '../../models/state.model';
 
@@ -32,12 +32,22 @@ const Panel: React.FC<Props> = (props: Props) => {
     }
   }, [props.state.gameState]);
 
+  // Listen to user key down events
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    switch (event.key) {
+      case 'Enter':
+        startGame();
+        break;
+    }
+  };
+
   const startGame = () => {
     props.dispatch({ type: GamePhase.START });
+    document.getElementById('board')?.focus();
   };
 
   return (
-    <div className="interface" style={{ display }}>
+    <div className="interface" style={{ display }} onKeyDown={onKeyDown} tabIndex={0}>
       <div>
         <h1>{title}</h1>
         <button onClick={startGame}>{action}</button>

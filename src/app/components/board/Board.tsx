@@ -66,33 +66,43 @@ const Board: React.FC<Props> = (props: Props) => {
 
   // Listen to user key down events
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    const direction = directions[directions.length - 1];
-    // e.g.: Transform 'ArrowDown' in 'DOWN'
-    const newDirection = event.key.slice(event.key.indexOf('w') + 1).toUpperCase() as MoveDirection;
+    switch (event.key) {
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        const direction = directions[directions.length - 1];
+        // e.g.: Transform 'ArrowDown' in 'DOWN'
+        const newDirection = event.key
+          .slice(event.key.indexOf('w') + 1)
+          .toUpperCase() as MoveDirection;
 
-    // If newDirection is different and not the opposite direction of current direction
-    if (
-      props.state.gameState === GamePhase.START ||
-      (direction !== newDirection && !isOppositeDirection(direction, newDirection))
-    ) {
-      if (directions.length === 1) {
-        setDirections([newDirection, newDirection]);
-      } else {
-        setDirections([...directions, newDirection]);
-      }
-    }
+        // If newDirection is different and not the opposite direction of current direction
+        if (
+          props.state.gameState === GamePhase.START ||
+          (direction !== newDirection && !isOppositeDirection(direction, newDirection))
+        ) {
+          if (directions.length === 1) {
+            setDirections([newDirection, newDirection]);
+          } else {
+            setDirections([...directions, newDirection]);
+          }
+        }
 
-    // Start game
-    if (props.state.gameState === GamePhase.START) {
-      props.dispatch({
-        type: GamePhase.TICK,
-        direction: newDirection,
-      });
+        // Start game
+        if (props.state.gameState === GamePhase.START) {
+          props.dispatch({
+            type: GamePhase.TICK,
+            direction: newDirection,
+          });
+        }
+        break;
     }
   };
 
   return (
     <div
+      id="board"
       className="board"
       style={{
         borderTopWidth: borderTopBottomWidth,
