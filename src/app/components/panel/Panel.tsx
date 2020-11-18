@@ -11,7 +11,11 @@ interface Props {
 const Panel: React.FC<Props> = (props: Props) => {
   const [title, setTitle] = useState('React Snake Game');
   const [action, setAction] = useState('Start');
-  const [display, setDisplay] = useState('flex');
+  const [opacity, setOpacity] = useState(1);
+
+  useEffect(() => {
+    document.getElementById('btnStart')?.focus();
+  }, []);
 
   useEffect(() => {
     switch (props.state.gameState) {
@@ -20,14 +24,15 @@ const Panel: React.FC<Props> = (props: Props) => {
         setAction('Start');
         break;
       case GamePhase.START:
-        setDisplay('none');
+        setOpacity(0);
         break;
       case GamePhase.TICK:
         break;
       default:
         setTitle('Game Over');
         setAction('Play again');
-        setDisplay('flex');
+        setOpacity(1);
+        document.getElementById('btnStart')?.focus();
         break;
     }
   }, [props.state.gameState]);
@@ -47,10 +52,12 @@ const Panel: React.FC<Props> = (props: Props) => {
   };
 
   return (
-    <div className="interface" style={{ display }} onKeyDown={onKeyDown} tabIndex={0}>
+    <div className="panel" style={{ opacity: opacity }} onKeyDown={onKeyDown} tabIndex={0}>
       <div>
         <h1>{title}</h1>
-        <button onClick={startGame}>{action}</button>
+        <button id="btnStart" onClick={startGame}>
+          {action}
+        </button>
       </div>
     </div>
   );

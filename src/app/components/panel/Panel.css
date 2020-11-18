@@ -1,4 +1,4 @@
-.interface {
+.panel {
   position: absolute;
   top: 0;
   left: 0;
@@ -9,7 +9,7 @@
   height: 100%;
 }
 
-.interface > div {
+.panel > div {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,7 +20,7 @@
   background: black;
 }
 
-.interface > div button {
+.panel > div button {
   margin-top: 16px;
   padding: 8px 16px;
   font-size: 20px;
@@ -28,4 +28,8 @@
   background: green;
   border: none;
   border-radius: 3px;
+}
+
+.panel > div button:focus {
+  outline: 2px solid red;
 }
